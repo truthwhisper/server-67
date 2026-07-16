@@ -1,0 +1,65 @@
+services:
+  bind:
+    image: internetsystemsconsortium/bind9:9.20
+    platform: linux/amd64
+    ports:
+      - "127.0.0.1:15353:53/tcp"
+      - "127.0.0.1:15353:53/udp"
+    volumes:
+      - ./bind/named.conf:/etc/bind/named.conf:ro
+      - ./bind/db.bind.test:/etc/bind/db.bind.test:ro
+      - bind-cache:/var/cache/bind
+      - bind-logs:/var/log/bind
+    healthcheck:
+      test: ["CMD-SHELL", "dig @127.0.0.1 bind.test SOA +short >/dev/null"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  powerdns:
+    image: powerdns/pdns-auth-49:latest
+    environment:
+      PDNS_AUTH_API_KEY: integration-powerdns-key
+    ports:
+      - "127.0.0.1:15354:53/tcp"
+      - "127.0.0.1:15354:53/udp"
+      - "127.0.0.1:18081:8081"
+    volumes:
+      - powerdns-data:/var/lib/powerdns
+    healthcheck:
+      test: ["CMD-SHELL", "pdns_control list-zones >/dev/null"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: domainoss
+      MYSQL_USER: domainoss
+      MYSQL_PASSWORD: integration-mysql-password
+      MYSQL_ROOT_PASSWORD: integration-root-password
+    ports:
+      - "127.0.0.1:13316:3306"
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-udomainoss", "-pintegration-mysql-password", "--silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:11025:1025"
+      - "127.0.0.1:18025:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  bind-cache:
+  bind-logs:
+  powerdns-data:

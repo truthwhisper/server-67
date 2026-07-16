@@ -1,0 +1,6 @@
+$TTL 300
+@ IN SOA ns1.bind.test. hostmaster.bind.test. (
+    2026071601 300 120 604800 300
+)
+@ IN NS ns1.bind.test.
+ns1 IN A 192.0.2.53

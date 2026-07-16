@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Administration') }} — {{ site_name }}{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-heading"><div><h1>{{ t('Administration') }}</h1><p>{{ t('Users, domains, providers, and instance activity.') }}</p></div><a class="button primary" href="{{ url_for('admin.dns') }}">{{ t('Configure DNS') }}</a></div>
+  <section class="stat-grid four">
+    <article><span>{{ t('Users') }}</span><b>{{ users }}</b><small>{{ t('All accounts') }}</small></article>
+    <article><span>{{ t('Domains') }}</span><b>{{ domains }}</b><small>{{ t('Claimed names') }}</small></article>
+    <article><span>{{ t('DNS providers') }}</span><b>{{ providers }}</b><small>{{ t('Configured backends') }}</small></article>
+    <article><span>{{ t('Zones') }}</span><b>{{ zones }}</b><small>{{ t('Managed parent zones') }}</small></article>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><h2>{{ t('Instance activity') }}</h2><p>{{ t('Latest security and management events') }}</p></div><a href="{{ url_for('admin.audit_log') }}">{{ t('Full audit log') }}</a></div>
+    <div class="activity-list wide">{% for entry in recent %}<div><span class="activity-dot"></span><p><strong>{{ entry.action|replace('.', ' ')|title }}</strong><small>{{ entry.target }}{% if entry.actor %} · {{ t('by') }} {{ entry.actor.username }}{% endif %}</small></p><time>{{ entry.created_at.strftime('%b %d, %H:%M') }}</time></div>{% else %}<div class="empty compact"><p>{{ t('No activity has been recorded.') }}</p></div>{% endfor %}</div>
+  </section>
+</div>
+{% endblock %}

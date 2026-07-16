@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Zone policy') }} — {{ site_name }}{% endblock %}
+{% block content %}
+<div class="page-wrap narrow">
+  <a class="back-link" href="{{ url_for('admin.dns') }}">← {{ t('DNS providers') }}</a>
+  <div class="page-heading"><div><span class="kicker">ZONE POLICY</span><h1>{{ zone.name }}</h1><p>{{ t('Control registration, naming, records, DNSSEC, and secondary DNS.') }}</p></div></div>
+  <section class="panel form-panel">
+    <form method="post" class="stack-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>{{ t('Registration mode') }}<select name="registration_mode"><option value="open" {% if zone.registration_mode == 'open' %}selected{% endif %}>{{ t('Open') }}</option><option value="approval" {% if zone.registration_mode == 'approval' %}selected{% endif %}>{{ t('Administrator approval') }}</option><option value="closed" {% if zone.registration_mode == 'closed' %}selected{% endif %}>{{ t('Closed') }}</option></select></label>
+      <div class="form-grid"><label>{{ t('Domains per user') }}<input type="number" name="max_domains_per_user" min="1" max="100" value="{{ zone.max_domains_per_user or '' }}" placeholder="Instance default"></label><label>{{ t('Reserved labels') }}<input name="reserved_labels" value="{{ json.loads(zone.reserved_labels or '[]')|join(', ') }}" placeholder="www, mail, admin"></label></div>
+      <div class="form-grid"><label>{{ t('Minimum label length') }}<input type="number" name="minimum_label_length" min="1" max="63" value="{{ zone.minimum_label_length }}"></label><label>{{ t('Maximum label length') }}<input type="number" name="maximum_label_length" min="1" max="63" value="{{ zone.maximum_label_length }}"></label></div>
+      <fieldset><legend>{{ t('Allowed record types') }}</legend><div class="check-grid">{% set allowed=json.loads(zone.allowed_record_types or '[]') %}{% for type in ['A','AAAA','CNAME','MX','TXT','SRV','CAA','NS'] %}<label class="check-row"><input type="checkbox" name="allowed_record_types" value="{{ type }}" {% if type in allowed %}checked{% endif %}> {{ type }}</label>{% endfor %}</div></fieldset>
+      <label class="switch-row"><span><strong>{{ t('Wildcard records') }}</strong><small>{{ t('Allow users to publish records at *.') }}</small></span><input type="checkbox" name="allow_wildcard" {% if zone.allow_wildcard %}checked{% endif %}></label>
+      <label>{{ t('Secondary DNS servers') }}<textarea name="secondary_dns" rows="4" placeholder="ns2.example.net">{{ json.loads(zone.secondary_dns or '[]')|join('\n') }}</textarea></label>
+      <button class="button primary">{{ t('Save zone policy') }}</button>
+    </form>
+  </section>
+  <section class="panel form-panel">
+    <div class="panel-head"><div><h2>DNSSEC</h2><p>{{ t('Provider status') }}: <strong>{{ zone.dnssec_status }}</strong></p></div></div>
+    {% set dnssec = get_setting('zone.' ~ zone.id ~ '.dnssec_details', '{}') %}
+    <form method="post" action="{{ url_for('admin.update_zone_dnssec', zone_id=zone.id) }}" class="button-row"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button secondary" name="action" value="refresh">{{ t('Refresh status') }}</button><button class="button primary" name="action" value="enable">{{ t('Enable DNSSEC') }}</button><button class="button danger" name="action" value="disable">{{ t('Disable DNSSEC') }}</button></form>
+    {% if dnssec != '{}' %}<pre class="code-block">{{ dnssec }}</pre>{% endif %}
+  </section>
+  <section class="panel form-panel">
+    <div class="panel-head"><div><h2>{{ t('Secondary DNS') }}</h2><p>{{ t('Health status') }}: <strong>{{ zone.transfer_status }}</strong></p></div></div>
+    <form method="post" action="{{ url_for('admin.check_zone_secondaries', zone_id=zone.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button secondary">{{ t('Check authoritative SOA') }}</button></form>
+  </section>
+</div>
+{% endblock %}

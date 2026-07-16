@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} — {{ site_name }}{% endblock %}
+{% block content %}
+<div class="error-page">
+  <span>{{ code }}</span>
+  <h1>{{ t('Request could not be completed') }}</h1>
+  <p>{{ message }}</p>
+  <a class="button primary" href="{% if current_user.is_authenticated %}{{ url_for('dashboard.index') }}{% else %}/{% endif %}">{{ t('Return to home') }}</a>
+</div>
+{% endblock %}

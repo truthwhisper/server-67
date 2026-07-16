@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="{{ current_locale }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}{{ site_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body class="{% if current_user.is_authenticated %}app-body{% else %}public-body{% endif %}">
+  {% if current_user.is_authenticated %}
+  <aside class="sidebar">
+    <a class="brand" href="{{ url_for('dashboard.index') }}">
+      <span><strong>{{ site_name }}</strong><small>Domain administration</small></span>
+    </a>
+    <nav class="nav-list" aria-label="Main navigation">
+      <a class="nav-link {% if request.blueprint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">{{ t('Overview') }}</a>
+      <a class="nav-link {% if request.blueprint == 'domains' %}active{% endif %}" href="{{ url_for('domains.index') }}">{{ t('Domains & DNS') }}</a>
+      <a class="nav-link {% if request.blueprint == 'account' %}active{% endif %}" href="{{ url_for('account.index') }}">{{ t('Account & security') }}</a>
+      {% if current_user.is_admin %}
+      <p class="nav-label">{{ t('Administration') }}</p>
+      <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" href="{{ url_for('admin.index') }}">{{ t('Admin overview') }}</a>
+      <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}" href="{{ url_for('admin.users') }}">{{ t('Users') }}</a>
+      <a class="nav-link {% if request.endpoint == 'admin.domains' %}active{% endif %}" href="{{ url_for('admin.domains') }}">{{ t('Domains') }}</a>
+      <a class="nav-link {% if request.endpoint == 'admin.dns' %}active{% endif %}" href="{{ url_for('admin.dns') }}">{{ t('DNS providers') }}</a>
+      <a class="nav-link {% if request.endpoint == 'admin.dns_jobs' %}active{% endif %}" href="{{ url_for('admin.dns_jobs') }}">{{ t('DNS jobs') }}</a>
+      <a class="nav-link {% if request.endpoint == 'admin.domain_approvals' %}active{% endif %}" href="{{ url_for('admin.domain_approvals') }}">{{ t('Approvals') }}</a>
+      <a class="nav-link {% if request.endpoint == 'admin.webhooks' %}active{% endif %}" href="{{ url_for('admin.webhooks') }}">{{ t('Webhooks') }}</a>
+      <a class="nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}" href="{{ url_for('admin.settings') }}">{{ t('Settings') }}</a>
+      <a class="nav-link {% if request.endpoint == 'admin.audit_log' %}active{% endif %}" href="{{ url_for('admin.audit_log') }}">{{ t('Audit log') }}</a>
+      {% endif %}
+      <a class="nav-link source-link" href="{{ source_url }}" target="_blank" rel="noreferrer">{{ t('Source & license') }}</a>
+    </nav>
+    <div class="account-card">
+      <span class="avatar">{{ current_user.username[:1]|upper }}</span>
+      <span class="account-copy"><strong>{{ current_user.username }}</strong><small>{% if current_user.is_admin %}{{ t('Administrator') }}{% else %}{{ t('Member') }}{% endif %}</small></span>
+      <form action="{{ url_for('auth.logout') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="icon-button sign-out-button" aria-label="{{ t('Sign out') }}" title="{{ t('Sign out') }}">{{ t('Sign out') }}</button>
+      </form>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main class="{% if current_user.is_authenticated %}main-content{% else %}public-content{% endif %}">
+    {% if current_user.is_authenticated %}
+    <header class="mobile-header"><a class="brand" href="{{ url_for('dashboard.index') }}"><strong>{{ site_name }}</strong></a></header>
+    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="flash-stack" aria-live="polite">
+      {% for category, message in messages %}<div class="flash {{ category }}">{{ t(message) }}</div>{% endfor %}
+      </div>{% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

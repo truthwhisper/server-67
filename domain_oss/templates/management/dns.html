@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ t('DNS providers') }} — {{ site_name }}{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-heading"><div><h1>{{ t('DNS providers') }}</h1><p>{{ t('Provider credentials are encrypted before storage.') }}</p></div></div>
+  <div class="content-grid">
+    <section class="panel form-panel">
+      <div class="panel-head"><div><h2>{{ t('Add provider') }}</h2><p>{{ t('Enter the connection details for one provider.') }}</p></div></div>
+      <form method="post" class="stack-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-grid"><label>{{ t('Display name') }}<input name="name" required maxlength="80" placeholder="Primary DNS"></label><label>{{ t('Provider') }}<select name="kind" required><option value="cloudflare">Cloudflare</option><option value="powerdns">PowerDNS</option><option value="bind">BIND / RFC 2136</option></select></label></div>
+        <div class="provider-fields">
+          <h3>Cloudflare</h3><label>{{ t('API token') }}<input type="password" name="api_token" autocomplete="off" placeholder="Token with Zone DNS Edit"></label>
+          <h3>PowerDNS</h3><label>API URL<input type="url" name="api_url" placeholder="https://dns.example.org"></label><label>{{ t('API key') }}<input type="password" name="api_key" autocomplete="off"></label>
+          <h3>BIND / RFC 2136</h3><div class="form-grid"><label>{{ t('Server') }}<input name="server" placeholder="dns.example.org"></label><label>{{ t('Port') }}<input type="number" name="port" value="53" min="1" max="65535"></label></div><label>{{ t('TSIG key name') }}<input name="key_name" placeholder="domain-oss-key"></label><label>{{ t('TSIG secret') }}<input type="password" name="key_secret" autocomplete="off"></label><label>{{ t('Algorithm') }}<select name="algorithm"><option>hmac-sha256</option><option>hmac-sha512</option><option>hmac-sha1</option></select></label>
+        </div>
+        <button class="button primary" type="submit">{{ t('Save provider') }}</button>
+      </form>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><h2>{{ t('Configured providers') }}</h2><p>{{ t('Test connectivity before assigning a zone.') }}</p></div></div>
+      {% if providers %}<div class="provider-list">{% for provider in providers %}<article><div><strong>{{ provider.name }}</strong><small>{{ provider.kind|upper }} · {{ t(provider.last_health_status|title) }}</small></div><a class="text-button" href="{{ url_for('admin.edit_provider', provider_id=provider.id) }}">{{ t('Edit') }}</a><form method="post" action="{{ url_for('admin.test_provider', provider_id=provider.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="text-button">{{ t('Test') }}</button></form><form method="post" action="{{ url_for('admin.delete_provider', provider_id=provider.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger-link">{{ t('Delete') }}</button></form></article>{% endfor %}</div>{% else %}<div class="empty compact"><h3>{{ t('No DNS providers') }}</h3><p>{{ t('Add a provider to configure a managed zone.') }}</p></div>{% endif %}
+    </section>
+  </div>
+  <section class="panel zone-panel">
+    <div class="panel-head"><div><h2>{{ t('Managed zones') }}</h2><p>{{ t('Parent zones available for delegated domain registration.') }}</p></div></div>
+    <form method="post" action="{{ url_for('admin.add_zone') }}" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>{{ t('Zone') }}<input name="zone_name" required placeholder="example.org"></label><label>{{ t('Provider') }}<select name="provider_id" required>{% for provider in providers %}<option value="{{ provider.id }}">{{ provider.name }}</option>{% endfor %}</select></label><label>{{ t('Remote zone ID') }} <small>Cloudflare</small><input name="remote_id" placeholder="{{ t('Optional for BIND/PowerDNS') }}"></label><button class="button primary" {% if not providers %}disabled{% endif %}>{{ t('Add zone') }}</button></form>
+    {% if zones %}<div class="table-wrap"><table><thead><tr><th>{{ t('Zone') }}</th><th>{{ t('Provider') }}</th><th>{{ t('Remote ID') }}</th><th>{{ t('Domains') }}</th><th></th></tr></thead><tbody>{% for zone in zones %}<tr><td><strong>{{ zone.name }}</strong></td><td>{{ zone.provider.name }}</td><td class="muted">{{ zone.remote_id or t('Provider default') }}</td><td>{{ zone.domains|length }}</td><td><div class="button-row"><a class="text-button" href="{{ url_for('admin.zone_settings', zone_id=zone.id) }}">{{ t('Policy') }}</a><form method="post" action="{{ url_for('admin.delete_zone', zone_id=zone.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger-link">{{ t('Delete') }}</button></form></div></td></tr>{% endfor %}</tbody></table></div>{% endif %}
+  </section>
+</div>
+{% endblock %}

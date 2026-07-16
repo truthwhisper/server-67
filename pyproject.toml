@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "digitalplat-domain-oss"
+version = "0.1.0"
+description = "An open-source domain and DNS management platform"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-only" }
+dependencies = [
+  "cryptography>=44,<46",
+  "dnspython>=2.7,<3",
+  "Flask>=3.1,<4",
+  "Flask-Login>=0.6,<1",
+  "Flask-SQLAlchemy>=3.1,<4",
+  "gunicorn>=23,<24",
+  "PyMySQL>=1.1,<2",
+  "pyotp>=2.9,<3",
+  "requests>=2.32,<3",
+  "segno>=1.6,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<9", "pytest-cov>=6,<7", "ruff>=0.11,<1"]
+
+[project.scripts]
+domain-oss = "domain_oss.cli:cli"
+
+[tool.setuptools.packages.find]
+include = ["domain_oss*"]
+
+[tool.setuptools.package-data]
+domain_oss = ["templates/**/*.html", "static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"

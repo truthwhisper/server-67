@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Sign in') }} — {{ site_name }}{% endblock %}
+{% block content %}
+<div class="auth-shell">
+  <a class="brand auth-brand" href="/"><strong>{{ site_name }}</strong></a>
+  <section class="auth-card">
+    <h1>{{ t('Sign in') }}</h1>
+    <p>{{ t('Use your account to manage domains and DNS records.') }}</p>
+    <form method="post" class="stack-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>{{ t('Email or username') }}<input name="identity" autocomplete="username" required autofocus placeholder="you@example.org"></label>
+      <label>{{ t('Password') }}<input type="password" name="password" autocomplete="current-password" required placeholder="{{ t('Your password') }}"></label>
+      <label class="check-row"><input type="checkbox" name="remember"> {{ t('Keep me signed in on this device') }}</label>
+      <button class="button primary full" type="submit">{{ t('Sign in') }}</button>
+      <a class="text-button" href="{{ url_for('account.forgot_password') }}">{{ t('Forgot password?') }}</a>
+    </form>
+    <div class="auth-footer">{{ t('Need an account?') }} <a href="{{ url_for('auth.register') }}">{{ t('Register') }}</a></div>
+  </section>
+</div>
+{% endblock %}

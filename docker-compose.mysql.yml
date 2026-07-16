@@ -1,0 +1,35 @@
+services:
+  panel:
+    environment:
+      DATABASE_URL: "mysql+pymysql://domainoss:${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}@db/domainoss"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    environment:
+      DATABASE_URL: "mysql+pymysql://domainoss:${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}@db/domainoss"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: domainoss
+      MYSQL_USER: domainoss
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  mysql_data:

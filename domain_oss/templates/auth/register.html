@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Create account') }} — {{ site_name }}{% endblock %}
+{% block content %}
+<div class="auth-shell">
+  <a class="brand auth-brand" href="/"><strong>{{ site_name }}</strong></a>
+  <section class="auth-card wide">
+    <h1>{{ t('Create account') }}</h1>
+    <p>{{ t('Register to manage domains under the available zones.') }}</p>
+    <form method="post" class="stack-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-grid">
+        <label>{{ t('Username') }}<input name="username" autocomplete="username" required minlength="3" maxlength="32" placeholder="alex"></label>
+        <label>{{ t('Email address') }}<input type="email" name="email" autocomplete="email" required maxlength="254" placeholder="alex@example.org"></label>
+      </div>
+      <label>{{ t('Password') }}<input type="password" name="password" autocomplete="new-password" required minlength="12" maxlength="128" placeholder="{{ t('At least 12 characters with a number') }}"><small>{{ t('Use 12 or more characters with at least one letter and one number.') }}</small></label>
+      <button class="button primary full" type="submit">{{ t('Create account') }}</button>
+    </form>
+    <div class="auth-footer">{{ t('Already have an account?') }} <a href="{{ url_for('auth.login') }}">{{ t('Sign in') }}</a></div>
+  </section>
+</div>
+{% endblock %}

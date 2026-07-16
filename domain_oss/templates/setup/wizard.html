@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Set up DigitalPlat Domain OSS') }}{% endblock %}
+{% block content %}
+<div class="setup-shell">
+  <section class="setup-intro">
+    <a class="brand" href="/"><strong>DigitalPlat Domain OSS</strong></a>
+    <div>
+      <span class="step-badge">{{ t('INITIAL SETUP') }}</span>
+      <h1>{{ t('Configure this installation') }}</h1>
+      <p>{{ t('Create the first administrator and set the initial account policy. DNS providers are configured after sign-in.') }}</p>
+      <ul class="setup-list">
+        <li><b>1</b><span><strong>{{ t('Administrator account') }}</strong><small>{{ t('Use a unique password with at least 12 characters') }}</small></span></li>
+        <li><b>2</b><span><strong>{{ t('Account policy') }}</strong><small>{{ t('Set the default quota and registration access') }}</small></span></li>
+        <li><b>3</b><span><strong>{{ t('DNS provider') }}</strong><small>BIND, PowerDNS, {{ t('or') }} Cloudflare</small></span></li>
+      </ul>
+    </div>
+    <div><small>AGPL-3.0 open source software</small><div class="locale-links">{% for locale in supported_locales %}<a href="{{ url_for('public.set_locale', locale=locale, next=request.path) }}">{{ locale_label(locale) }}</a>{% endfor %}</div></div>
+  </section>
+  <section class="setup-form-panel">
+    <form method="post" class="stack-form setup-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div><h2>{{ t('Installation settings') }}</h2><p>{{ t('You can change these settings later.') }}</p></div>
+      <label>{{ t('Site name') }}<input name="site_name" value="DigitalPlat Domain OSS" required maxlength="80"></label>
+      <div class="form-grid">
+        <label>{{ t('Admin username') }}<input name="username" required minlength="3" maxlength="32" autocomplete="username" placeholder="admin"></label>
+        <label>{{ t('Admin email') }}<input type="email" name="email" required maxlength="254" autocomplete="email" placeholder="admin@example.org"></label>
+      </div>
+      <label>{{ t('Admin password') }}<input type="password" name="password" required minlength="12" maxlength="128" autocomplete="new-password" placeholder="12+ characters, including a number"><small>{{ t('Store this password in a password manager.') }}</small></label>
+      <label>{{ t('Domains per user') }}<input type="number" name="max_domains_per_user" value="3" min="1" max="100" required></label>
+      <label class="switch-row"><span><strong>{{ t('Public registration') }}</strong><small>{{ t('Anyone can create an account. Disable for a private group.') }}</small></span><input type="checkbox" name="registration_enabled" checked></label>
+      <button class="button primary full" type="submit">{{ t('Complete setup') }}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

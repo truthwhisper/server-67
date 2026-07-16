@@ -1,0 +1,48 @@
+services:
+  panel:
+    build: .
+    image: digitalplat-domain-oss:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY in .env}"
+      COOKIE_SECURE: "${COOKIE_SECURE:-0}"
+      SOURCE_URL: "${SOURCE_URL:-https://github.com/DigitalPlatDev/Domain-OSS}"
+      DATABASE_URL: "${DATABASE_URL:-sqlite:////app/instance/domain-oss.db}"
+      WORKERS: "${WORKERS:-2}"
+      PUBLIC_ORIGIN: "${PUBLIC_ORIGIN:-http://127.0.0.1:8080}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USERNAME: "${SMTP_USERNAME:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-DigitalPlat Domain OSS <noreply@localhost>}"
+    volumes:
+      - domain_oss_data:/app/instance
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  worker:
+    image: digitalplat-domain-oss:local
+    restart: unless-stopped
+    command: ["sh", "-c", "domain-oss init-db && exec domain-oss worker"]
+    environment:
+      SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY in .env}"
+      DATABASE_URL: "${DATABASE_URL:-sqlite:////app/instance/domain-oss.db}"
+      PUBLIC_ORIGIN: "${PUBLIC_ORIGIN:-http://127.0.0.1:8080}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USERNAME: "${SMTP_USERNAME:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_FROM: "${SMTP_FROM:-DigitalPlat Domain OSS <noreply@localhost>}"
+    volumes:
+      - domain_oss_data:/app/instance
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  domain_oss_data:

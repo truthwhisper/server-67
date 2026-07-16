@@ -1,0 +1,63 @@
+#!/bin/sh
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+VENV="$ROOT/.venv"
+COMMAND=${1:-help}
+export INSTANCE_PATH=${INSTANCE_PATH:-"$ROOT/instance"}
+
+install_panel() {
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "Python 3.11 or newer is required." >&2
+        exit 1
+    fi
+    python3 -c 'import sys; raise SystemExit(sys.version_info < (3, 11))' || {
+        echo "Python 3.11 or newer is required." >&2
+        exit 1
+    }
+    python3 -m venv "$VENV"
+    "$VENV/bin/python" -m pip install --upgrade pip
+    "$VENV/bin/pip" install "$ROOT"
+    "$VENV/bin/domain-oss" init-db
+    echo
+    echo "Installation complete. Run: ./panel start"
+}
+
+case "$COMMAND" in
+    install)
+        install_panel
+        ;;
+    start)
+        [ -x "$VENV/bin/gunicorn" ] || install_panel
+        HOST=${HOST:-127.0.0.1}
+        PORT=${PORT:-8080}
+        WORKERS=${WORKERS:-2}
+        cd "$ROOT"
+        "$VENV/bin/domain-oss" init-db
+        exec "$VENV/bin/gunicorn" --workers "$WORKERS" --bind "$HOST:$PORT" \
+            --access-logfile - --error-logfile - --timeout 30 'domain_oss:create_app()'
+        ;;
+    doctor|create-admin|init-db|upgrade|worker)
+        [ -x "$VENV/bin/domain-oss" ] || {
+            echo "Run ./panel install first." >&2
+            exit 1
+        }
+        shift
+        exec "$VENV/bin/domain-oss" "$COMMAND" "$@"
+        ;;
+    help|-h|--help)
+        echo "DigitalPlat Domain OSS"
+        echo "  ./panel install       Create the environment and database"
+        echo "  ./panel start         Start the production web server"
+        echo "  ./panel doctor        Check the installation"
+        echo "  ./panel create-admin  Create a recovery administrator"
+        echo "  ./panel upgrade       Apply database migrations"
+        echo "  ./panel worker        Process DNS synchronization jobs"
+        echo
+        echo "Environment: HOST, PORT, WORKERS, DATABASE_URL, SECRET_KEY, COOKIE_SECURE"
+        ;;
+    *)
+        echo "Unknown command: $COMMAND" >&2
+        exit 2
+        ;;
+esac

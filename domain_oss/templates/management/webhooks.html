@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Webhooks') }} — {{ site_name }}{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="page-heading"><div><span class="kicker">{{ t('AUTOMATION') }}</span><h1>{{ t('Webhooks') }}</h1><p>{{ t('Send signed infrastructure events to your automation systems.') }}</p></div></div>
+  <div class="content-grid domains-layout">
+    <section class="panel form-panel">
+      <div class="panel-head"><div><h2>{{ t('Add endpoint') }}</h2><p>{{ t('HTTPS is required except for local development addresses.') }}</p></div></div>
+      <form method="post" class="stack-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>{{ t('Name') }}<input name="name" required maxlength="80" placeholder="Operations"></label>
+        <label>{{ t('Endpoint URL') }}<input type="url" name="url" required placeholder="https://hooks.example.org/domain-oss"></label>
+        <label>{{ t('Signing secret') }}<input name="secret" autocomplete="off" placeholder="{{ t('Generated when left empty') }}"></label>
+        <fieldset><legend>{{ t('Events') }}</legend>
+          {% for event in ['domain.created','domain.status_changed','dns.job_failed','dns.job_recovered','user.created'] %}
+          <label class="check-row"><input type="checkbox" name="events" value="{{ event }}" checked> {{ event }}</label>
+          {% endfor %}
+        </fieldset>
+        <button class="button primary">{{ t('Create webhook') }}</button>
+      </form>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><div><h2>{{ t('Endpoints') }}</h2><p>{{ endpoints|length }} {{ t('configured') }}</p></div></div>
+      <div class="provider-list">
+        {% for endpoint in endpoints %}
+        <article><span class="provider-logo">↗</span><div><strong>{{ endpoint.name }}</strong><small>{{ endpoint.url }} · {{ endpoint.events }} · {{ endpoint.last_status }}</small>{% if endpoint.last_error %}<small class="error-copy">{{ endpoint.last_error }}</small>{% endif %}</div>
+          <div class="button-row"><form method="post" action="{{ url_for('admin.test_webhook', endpoint_id=endpoint.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="text-button">{{ t('Test') }}</button></form><form method="post" action="{{ url_for('admin.toggle_webhook', endpoint_id=endpoint.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="text-button">{{ t('Disable') if endpoint.enabled else t('Enable') }}</button></form><form method="post" action="{{ url_for('admin.delete_webhook', endpoint_id=endpoint.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger-link">{{ t('Delete') }}</button></form></div>
+        </article>
+        {% else %}<div class="empty compact"><p>{{ t('No webhook endpoints configured.') }}</p></div>{% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

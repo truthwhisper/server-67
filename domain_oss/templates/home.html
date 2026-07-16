@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ site_name }} — Self-hosted domain and DNS management{% endblock %}
+{% block content %}
+<div class="marketing-shell">
+  <header class="public-nav">
+    <a class="brand" href="/"><strong>{{ site_name }}</strong></a>
+    <nav>
+      <a href="#features">{{ t('Features') }}</a>
+      <a href="{{ source_url }}/tree/main/docs" target="_blank" rel="noreferrer">{{ t('Documentation') }}</a>
+      <a href="{{ source_url }}" target="_blank" rel="noreferrer">GitHub</a>
+      <a class="button secondary small" href="{{ url_for('auth.login') }}">{{ t('Sign in') }}</a>
+    </nav>
+  </header>
+
+  <section class="product-hero">
+    <div class="product-intro">
+      <p class="product-label">AGPL-3.0 · {{ t('Self-hosted') }}</p>
+      <h1>{{ t('Domain and DNS management for your own infrastructure') }}</h1>
+      <p class="product-summary">{{ t('Manage users, delegated domains, DNS records, and authoritative providers from one web application.') }}</p>
+      <div class="hero-actions">
+        <a class="button primary" href="{{ source_url }}#quick-start" target="_blank" rel="noreferrer">{{ t('Install') }}</a>
+        <a class="button secondary" href="{{ url_for('auth.login') }}">{{ t('Open dashboard') }}</a>
+      </div>
+      <ul class="product-facts" aria-label="Product summary">
+        <li>BIND 9 / RFC 2136</li>
+        <li>PowerDNS</li>
+        <li>Cloudflare</li>
+        <li>SQLite / MySQL</li>
+      </ul>
+    </div>
+    <aside class="install-card" aria-label="Quick installation">
+      <div class="install-card-head"><strong>{{ t('Quick start') }}</strong><span>Docker Compose</span></div>
+      <pre><code>git clone https://github.com/DigitalPlatDev/Domain-OSS.git
+cd Domain-OSS
+cp .env.example .env
+docker compose up -d</code></pre>
+      <p>{{ t('Open the setup wizard, create the first administrator, then connect a DNS provider.') }}</p>
+    </aside>
+  </section>
+
+  <section class="feature-section" id="features">
+    <div class="section-heading">
+      <h2>{{ t('Included features') }}</h2>
+      <p>{{ t('The web panel, administration tools, and DNS operations are included in the same installation.') }}</p>
+    </div>
+    <div class="feature-grid">
+      <article><h3>{{ t('Domains and DNS') }}</h3><p>{{ t('Delegate domains, edit common DNS record types, import and export records, and track synchronization jobs.') }}</p></article>
+      <article><h3>{{ t('Provider integrations') }}</h3><p>{{ t('Publish through BIND with TSIG, the PowerDNS HTTP API, or Cloudflare API tokens.') }}</p></article>
+      <article><h3>{{ t('Administration') }}</h3><p>{{ t('Manage accounts, roles, limits, approvals, zones, providers, webhooks, and audit events.') }}</p></article>
+      <article><h3>{{ t('Account security') }}</h3><p>{{ t('Use two-factor authentication, scoped API keys, session controls, password recovery, and email verification.') }}</p></article>
+      <article><h3>{{ t('Automation') }}</h3><p>{{ t('Use the REST API, signed webhooks, metrics endpoint, and Terraform provider for repeatable operations.') }}</p></article>
+      <article><h3>{{ t('Operations') }}</h3><p>{{ t('Run with SQLite or MySQL, deploy with Docker, and use health checks, backups, and background workers.') }}</p></article>
+    </div>
+  </section>
+
+  <section class="project-strip">
+    <div><strong>{{ t('Source available on GitHub') }}</strong><span>{{ t('Review the code, report issues, and contribute changes.') }}</span></div>
+    <a class="button secondary" href="{{ source_url }}" target="_blank" rel="noreferrer">github.com/DigitalPlatDev/Domain-OSS</a>
+  </section>
+
+  <footer class="public-footer">
+    <span>{{ site_name }} · <a href="{{ source_url }}/blob/main/LICENSE" target="_blank" rel="noreferrer">AGPL-3.0</a></span>
+    <span class="locale-links">{% for locale in supported_locales %}<a href="{{ url_for('public.set_locale', locale=locale, next=request.path) }}" {% if locale == current_locale %}class="active"{% endif %}>{{ locale_label(locale) }}</a>{% endfor %}</span>
+  </footer>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ domain.fqdn }} — {{ site_name }}{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="button-row">
+    <a class="back-link" href="{{ url_for('domains.index') }}">← {{ t('All domains') }}</a>
+    <a class="back-link" href="{{ url_for('domains.tools', domain_id=domain.id) }}">{{ t('Import / Export') }}</a>
+  </div>
+  <div class="page-heading domain-heading">
+    <div><span class="kicker">{{ t('DOMAIN DETAILS') }}</span><h1>{{ domain.fqdn }}</h1><p>{{ t('Published through') }} {{ domain.zone.provider.name }} · {{ domain.zone.name }}</p></div>
+    <span class="{{ 'live-pill' if domain.status == 'active' else 'paused-pill' }} large">● {{ t(domain.status|title) }}</span>
+  </div>
+  <div class="content-grid domains-layout">
+    {% if can_write %}
+    <section class="panel form-panel">
+      <div class="panel-head"><div><h2>{{ t('Add DNS record') }}</h2><p>{{ t('Changes are sent to your provider immediately.') }}</p></div></div>
+      {% if domain.status == 'active' %}
+      <form method="post" action="{{ url_for('domains.add_record', domain_id=domain.id) }}" class="stack-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-grid record-grid"><label>{{ t('Type') }}<select name="record_type" required>{% for type in ['A','AAAA','CNAME','MX','TXT','SRV','CAA','NS'] %}{% if type in allowed_types %}<option>{{ type }}</option>{% endif %}{% endfor %}</select></label><label>{{ t('Name') }}<input name="name" value="@" required maxlength="253"></label></div>
+        <label>{{ t('Value') }}<textarea name="content" rows="3" required maxlength="2048" placeholder="192.0.2.1"></textarea></label>
+        <div class="form-grid"><label>TTL<input type="number" name="ttl" value="300" min="60" max="86400" required></label><label>{{ t('Priority') }} <small>(MX/SRV)</small><input type="number" name="priority" min="0" max="65535" placeholder="10"></label></div>
+        <button class="button primary" type="submit">{{ t('Publish record') }} <span>↑</span></button>
+      </form>
+      {% else %}<div class="empty compact"><p>{{ t('DNS changes are available when this domain is active.') }}</p></div>{% endif %}
+    </section>
+    {% endif %}
+    <section class="panel">
+      <div class="panel-head"><div><h2>{{ t('DNS records') }}</h2><p>{{ records|length }} {{ t('published records') }}</p></div></div>
+      {% if records %}<div class="table-wrap"><table><thead><tr><th>{{ t('Type') }}</th><th>{{ t('Name') }}</th><th>{{ t('Value') }}</th><th>TTL</th><th></th></tr></thead><tbody>
+      {% for record in records %}<tr><td><span class="type-badge">{{ record.record_type }}</span></td><td><strong>{{ record.name }}</strong></td><td class="record-value">{% if record.priority is not none %}{{ record.priority }} {% endif %}{{ record.content }}</td><td>{{ record.ttl }}</td><td>{% if can_write %}<a class="text-button" href="{{ url_for('domains.edit_record', domain_id=domain.id, record_id=record.id) }}">{{ t('Edit') }}</a><form method="post" action="{{ url_for('domains.delete_record', domain_id=domain.id, record_id=record.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger-link" type="submit">{{ t('Delete') }}</button></form>{% endif %}</td></tr>{% endfor %}
+      </tbody></table></div>{% else %}<div class="empty"><span>⌁</span><h3>{{ t('No DNS records') }}</h3><p>{{ t('Add an A, AAAA, CNAME, or another record to connect this domain.') }}</p></div>{% endif %}
+    </section>
+  </div>
+  {% if domain.owner_id == current_user.id or current_user.is_admin %}
+  <section class="panel form-panel domain-access">
+    <div class="panel-head"><div><h2>{{ t('Team access') }}</h2><p>{{ t('Give a team role-based access to this domain.') }}</p></div></div>
+    <form method="post" action="{{ url_for('domains.assign_team', domain_id=domain.id) }}" class="button-row">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <select name="team_id"><option value="">{{ t('Private to owner') }}</option>{% for team in teams %}<option value="{{ team.id }}" {% if domain.team_id == team.id %}selected{% endif %}>{{ team.name }}</option>{% endfor %}</select>
+      <button class="button secondary">{{ t('Update access') }}</button>
+    </form>
+  </section>
+  {% endif %}
+  {% if can_manage %}
+  <section class="danger-zone panel"><div><h2>{{ t('Remove domain') }}</h2><p>{{ t('This deletes every DNS record first, then releases the name.') }}</p></div><form method="post" action="{{ url_for('domains.delete_domain', domain_id=domain.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button danger" type="submit">{{ t('Remove domain') }}</button></form></section>
+  {% endif %}
+</div>
+{% endblock %}
