@@ -1,5 +1,7 @@
 # DigitalPlat Domain OSS
 
+[![AGPL-3.0 license badge](https://licenses.opensource.ngo/badges/AGPL-3.0-modern.svg)](https://licenses.opensource.ngo/docs/public-licenses/AGPL-3.0)
+
 DigitalPlat Domain OSS is a self-hosted domain and DNS management platform. It provides a unified user and administrator experience for publishing domains, managing DNS records, connecting authoritative DNS providers, and operating a domain service on infrastructure you control.
 
 ## Features
