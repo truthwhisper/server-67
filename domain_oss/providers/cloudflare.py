@@ -32,9 +32,25 @@ class CloudflareProvider(BaseProvider):
     def sync_rrset(self, zone, remote_id, name, record_type, values):
         if not remote_id:
             raise DNSProviderError("Cloudflare zone ID is required")
-        existing = self._request(
-            "GET", f"/zones/{remote_id}/dns_records", params={"type": record_type, "name": name}
-        )["result"]
+        existing = []
+        page = 1
+        while True:
+            data = self._request(
+                "GET",
+                f"/zones/{remote_id}/dns_records",
+                params={"type": record_type, "name": name, "page": page, "per_page": 100},
+            )
+            batch = data.get("result") or []
+            existing.extend(batch)
+            result_info = data.get("result_info") or {}
+            total_pages = result_info.get("total_pages")
+            if total_pages is not None:
+                if page >= total_pages:
+                    break
+            elif len(batch) < 100:
+                break
+            page += 1
+
         for record in existing:
             self._request("DELETE", f"/zones/{remote_id}/dns_records/{record['id']}")
         for value in values:

@@ -97,3 +97,43 @@ def test_cloudflare_dnssec_contract(monkeypatch):
     monkeypatch.setattr(provider, "_request", request)
     assert provider.set_dnssec("example.org", "zone-id", True) == "active"
     assert provider.get_dnssec("example.org", "zone-id")["ds"] == "12345 13 2 abc"
+
+
+def test_cloudflare_sync_rrset_paginates_existing_records(monkeypatch):
+    provider = CloudflareProvider({"api_token": "test"})
+    calls = []
+
+    def request(method, path, **kwargs):
+        calls.append((method, path, kwargs))
+        if method == "GET" and path == "/zones/zone-id/dns_records":
+            page = kwargs.get("params", {}).get("page", 1)
+            if page == 1:
+                return {
+                    "result": [{"id": f"rec-{i}"} for i in range(100)],
+                    "result_info": {"page": 1, "per_page": 100, "total_pages": 2},
+                }
+            elif page == 2:
+                return {
+                    "result": [{"id": f"rec-{i}"} for i in range(100, 125)],
+                    "result_info": {"page": 2, "per_page": 100, "total_pages": 2},
+                }
+        return {"result": {}}
+
+    monkeypatch.setattr(provider, "_request", request)
+    provider.sync_rrset(
+        "example.org",
+        "zone-id",
+        "test.example.org",
+        "TXT",
+        [RecordValue("v=spf1 ~all", 300)],
+    )
+
+    get_calls = [c for c in calls if c[0] == "GET" and c[1] == "/zones/zone-id/dns_records"]
+    delete_calls = [c for c in calls if c[0] == "DELETE"]
+    post_calls = [c for c in calls if c[0] == "POST"]
+
+    assert len(get_calls) == 2
+    assert get_calls[0][2]["params"]["page"] == 1
+    assert get_calls[1][2]["params"]["page"] == 2
+    assert len(delete_calls) == 125
+    assert len(post_calls) == 1
