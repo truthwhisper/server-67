@@ -3,8 +3,8 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "digitalplat-domain-oss"
-version = "0.1.0"
+name = "server-67"
+version = "1.0.0"
 description = "An open-source domain and DNS management platform"
 readme = "README.md"
 requires-python = ">=3.11"
