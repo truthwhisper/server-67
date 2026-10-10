@@ -17,6 +17,6 @@ USER domainoss
 EXPOSE 8080
 VOLUME ["/app/instance"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=3)"
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://0.0.0.0:8080/healthz', timeout=3)"
 
 CMD ["sh", "-c", "domain-oss init-db && exec gunicorn --workers ${WORKERS} --bind 0.0.0.0:${PORT} --access-logfile - --error-logfile - --timeout 30 'domain_oss:create_app()'"]
