@@ -29,7 +29,7 @@ case "$COMMAND" in
         ;;
     start)
         [ -x "$VENV/bin/gunicorn" ] || install_panel
-        HOST=${HOST:-127.0.0.1}
+        HOST=${HOST:-0.0.0.0}
         PORT=${PORT:-8080}
         WORKERS=${WORKERS:-2}
         cd "$ROOT"
